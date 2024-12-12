@@ -1,0 +1,43 @@
+import cv2
+import torch
+import matplotlib.pyplot as plt
+
+# YOLOv5 모델 불러오기 (사전 훈련된 모델 사용)
+model = torch.hub.load('ultralytics/yolov5', 'yolov5s')  # 'yolov5s'는 작은 모델, 다른 모델도 사용 가능
+
+# 이미지 불러오기
+image_path = 'your_image.jpg'  # 분석할 이미지 파일 경로
+img = cv2.imread(image_path)
+img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
+# 객체 감지 수행
+results = model(img_rgb)
+
+# 감지된 객체와 클래스 레이블
+detected_objects = results.xyxy[0].cpu().numpy()  # 경계 상자 좌표 [x_min, y_min, x_max, y_max, confidence, class]
+class_labels = results.names  # 클래스 이름들
+
+# 사람이나 동물 감지
+count_people = 0
+count_animals = 0
+for obj in detected_objects:
+    class_id = int(obj[5])
+    class_name = class_labels[class_id]
+    
+    # 사람과 동물 클래스 정의 (예: 사람: 0, 개: 16, 고양이: 17 등)
+    if class_name == 'person':
+        count_people += 1
+    elif class_name in ['dog', 'cat']:  # 동물 감지 (개, 고양이 예시)
+        count_animals += 1
+
+# 결과 출력
+print(f"Detected people: {count_people}")
+print(f"Detected animals: {count_animals}")
+
+# 결과 이미지 출력
+results.show()
+
+# 이미지 표시
+plt.imshow(img_rgb)
+plt.axis('off')  # 축 제거
+plt.show()
